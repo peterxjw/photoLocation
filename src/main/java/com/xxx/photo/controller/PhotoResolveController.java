@@ -8,8 +8,11 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,9 +40,35 @@ public class PhotoResolveController {
     @RequestMapping("test")
     public String test() throws ImageProcessingException, IOException {
         log.info("=============logTest================");
-        File file = new File("D:\\Program Files\\Tencent\\QQFile\\1106972295\\FileRecv\\MobileFile\\IMG_20211024_154259.jpg");
-        readImageInfo(file);
+//        File file = new File("D:\\Program Files\\Tencent\\QQFile\\1106972295\\FileRecv\\MobileFile\\IMG_20211024_154259.jpg");
+//        readImageInfo(file);
         return "success";
+    }
+
+    @RequestMapping("uploadImage")
+    public String uploadImage(@RequestParam("uploadFile") MultipartFile file) {
+        // 判断文件是否为空
+        if (file.isEmpty()) {
+            return "文件不能为空";
+        }
+        String staticPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
+        String address = "";
+        try {
+            //指定上传的位置为 d:/upload/
+            String path = staticPath + "/temp/";
+            //获取上传时的文件名
+            String fileName = file.getOriginalFilename();
+            //注意是路径+文件名
+            File targetFile = new File(path + fileName);
+            file.transferTo(targetFile);
+
+            address = readImageInfo(targetFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+        }
+
+        return address;
     }
 
     /**
@@ -49,7 +78,7 @@ public class PhotoResolveController {
      * @throws ImageProcessingException 图片信息读取异常
      * @throws IOException              图片文件流读取异常
      */
-    private void readImageInfo(File file) throws ImageProcessingException, IOException {
+    private String readImageInfo(File file) throws ImageProcessingException, IOException {
         Metadata metadata = ImageMetadataReader.readMetadata(file);
 
         log.info("=========全部详情=========");
@@ -107,9 +136,13 @@ public class PhotoResolveController {
                 }
             }
         }
+        String address = null;
         if (lat != null && lng != null) {
-            System.out.println(getAddressByLocation(lng, lat));
+            address = getAddressByLocation(lng, lat);
+            System.out.println(address);
         }
+
+        return address;
     }
 
     /**
