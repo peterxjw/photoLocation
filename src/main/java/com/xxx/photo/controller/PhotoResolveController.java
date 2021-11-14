@@ -8,7 +8,6 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * com.xxx.photo.controller
@@ -51,11 +51,11 @@ public class PhotoResolveController {
         if (file.isEmpty()) {
             return "文件不能为空";
         }
-        String staticPath = ClassUtils.getDefaultClassLoader().getResource("").getPath();
+
         String address = "";
         try {
             //指定上传的位置为 d:/upload/
-            String path = staticPath + "/temp/";
+            String path = "C:/application/temp/";
             //获取上传时的文件名
             String fileName = file.getOriginalFilename();
             //注意是路径+文件名
@@ -221,15 +221,17 @@ public class PhotoResolveController {
             URL url = new URL(getUrl);
             // 打开连接
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            //设置请求编码
+            connection.setRequestProperty("Charset", "UTF-8");
             // 连接会话
             connection.connect();
             // 获取输入流
-            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
             String line;
             StringBuilder sb = new StringBuilder();
             // 循环读取流
             while ((line = br.readLine()) != null) {
-                sb.append(line);
+                sb.append(new String(line.getBytes(), StandardCharsets.UTF_8));
             }
             // 关闭流
             br.close();
